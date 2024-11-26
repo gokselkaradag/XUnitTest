@@ -172,7 +172,9 @@ namespace UnitTest.Test
 
             // Assert
             Assert.Equal(expectedTotal, actualTotal);
-
+            Assert.NotEmpty(null);
+            mymock.Verify(x => x.add(a,b),Times.Once); //Bu methodun kaç kere çalışması gerektiğini uygular.
+            
         }
 
 
@@ -201,5 +203,38 @@ namespace UnitTest.Test
 
             Assert.Equal(15, calculator.multip(a, b));
         }
+
+        [Theory]
+        [InlineData(0, 5)]
+        public void Multip_ZeroValues_ReturnException(int a, int b) //Throws: Bir method üzerinden hata fırlatır.
+        {
+            var mymock = new Mock<ICalculatorService>();
+            mymock.Setup(x => x.multip(a, b)).Throws(new Exception("a = 0 olamaz"));
+
+            var calculator = mymock.Object;
+
+            Exception exception = Assert.Throws<Exception>(() => calculator.multip(a, b));
+
+            Assert.Equal("a = 0 olamaz", exception.Message);
+        }
+
+        [Theory]
+        [InlineData(3, 5, 15)]
+        public void Multip_SimpleValues_ReturnsMultipValueCallback(int a, int b, int expectedValue) //Callback 
+        {
+            int actualMultip = 0;
+            var mymock = new Mock<ICalculatorService>();
+            mymock.Setup(x => x.multip(It.IsAny<int>(), It.IsAny<int>()))
+                  .Callback<int, int>((x, y) => actualMultip = x * y);
+
+            var calculator = mymock.Object;
+
+            calculator.multip(a, b);
+            Assert.Equal(expectedValue, actualMultip);
+
+            calculator.multip(5, 20);
+            Assert.Equal(100, actualMultip);
+        }
+
     }
 }
