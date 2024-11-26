@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,9 +11,11 @@ namespace UnitTest.Test
     public class CalculatorTest
     {
         public Calculator calculator { get; set; }
+        public Mock<ICalculatorService> mymock { get; set; }
         public CalculatorTest()
         {
-            this.calculator = new Calculator();
+            var mymock = new Mock<ICalculatorService>();
+            this.calculator = new Calculator(mymock.Object);
         }
 
 
@@ -154,9 +157,29 @@ namespace UnitTest.Test
 
 
         [Theory] //Özniteliği, bir test metodunun farklı giriş değerlerini test etmesi gerektiğinde kullanılır.
-        [InlineData(2,5,7)] //Test metoduna gönderilecek veri setlerini tanımlar.
-        [InlineData(10,2,12)]
+        [InlineData(2, 5, 7)] //Test metoduna gönderilecek veri setlerini tanımlar.
+        [InlineData(10, 2, 12)]
         public void Add_simpleValues_ReturnTotalValue(int a, int b, int expectedTotal)
+        {
+            // Arrange
+            var mymock = new Mock<ICalculatorService>(); // Mock nesnesini başlat
+            mymock.Setup(x => x.add(a, b)).Returns(expectedTotal); // Beklenen davranışı ayarla
+
+            var calculator = mymock.Object; // Mock nesnesinden somut nesne oluştur
+
+            // Act
+            var actualTotal = calculator.add(a, b);
+
+            // Assert
+            Assert.Equal(expectedTotal, actualTotal);
+
+        }
+
+
+        [Theory]
+        [InlineData(0, 5, 0)]
+        [InlineData(10, 0, 0)]
+        public void Add_zeroValues_ReturnTotalValue(int a, int b, int expectedTotal) //Method isimlendirme örneği
         {
             var actualTotal = calculator.add(a, b);
 
@@ -166,14 +189,17 @@ namespace UnitTest.Test
 
 
         [Theory]
-        [InlineData(0, 5, 0)] 
-        [InlineData(10, 0, 0)]
-        public void Add_zeroValues_ReturnTotalValue(int a, int b, int expectedTotal) //Method isimlendirme örneği
+        [InlineData(3, 5, 15)]
+        public void Multip_SimpleValues_ReturnsMultipValue(int a, int b, int expectedTotal)
         {
-            var actualTotal = calculator.add(a, b);
+            var mymock = new Mock<ICalculatorService>();
+            mymock.Setup(x => x.multip(a, b)).Returns(expectedTotal);
 
-            Assert.Equal(expectedTotal, actualTotal);
+            var calculator = mymock.Object;
 
+            var actualTotal = calculator.multip(a, b);
+
+            Assert.Equal(15, calculator.multip(a, b));
         }
     }
 }
